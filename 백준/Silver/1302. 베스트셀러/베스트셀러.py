@@ -9,5 +9,4 @@ ans = []
 for i in books.items():
     if i[1]==maxcnt:
         ans.append(i[0])
-ans.sort()
-print(ans[0])
+print(min(ans))
