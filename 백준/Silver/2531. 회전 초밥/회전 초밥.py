@@ -15,10 +15,10 @@ for i in range(k):
     window.append(sushi[i])
     memo[sushi[i]]+=1 # 장부 기록
     # 첫 창문에서 쿠폰 확인 
-    if c not in memo:
-        cnt = len(memo)+1
-    else:
-        cnt = len(memo)
+if c not in memo:
+    cnt = len(memo)+1
+else:
+    cnt = len(memo)
     
 # 2. 회전 초밥 돌리기
 for i in range(k,len(sushi)):
