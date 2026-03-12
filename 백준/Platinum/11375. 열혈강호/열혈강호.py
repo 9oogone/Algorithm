@@ -3,12 +3,12 @@ input=sys.stdin.readline
 
 # 직원 수 N, 일의 개수 M
 N,M=map(int,input().split())
-staff=[list(map(int,input().split())) for _ in range(N)]
+staff=[list(map(int,input().split()))[1:] for _ in range(N)]
 duty = [0]*(M+1) # 어떤 일(인덱스)을 하는 담당자(그 인덱스 값) 메모
 
 def dfs(work):
     # 지금 보고 있는 staff가 할 수 있는 일의 후보
-    cand=staff[work][1:]
+    cand=staff[work]
     for i in cand:
         # 방문 확인
         if visited[i]:
