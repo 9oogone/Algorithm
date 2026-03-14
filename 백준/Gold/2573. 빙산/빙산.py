@@ -9,26 +9,6 @@ year = 0
 dx=[0,1,0,-1]
 dy=[1,0,-1,0]
 
-# 1년어치 녹이고 덩어리 확인하고 -> 1년어치 녹이고 덩어리 확인하고
-# bfs 돌면서 메모장에 그 위치의 빙산 몇 개 녹일지 기록
-# 기록된 메모장을 보고 빙산 녹이기
-# 빙산 분리됐는지 아닌지 확인하기
-
-def bfs(graph,x,y,target,visit):
-    # bfs 돌면서 메모장에 그 위치의 빙산 몇 개 녹일지 기록
-    q=deque([(x,y)])
-    while q:
-        qx,qy=q.popleft()
-        for i in range(4):
-            nx=qx+dx[i]
-            ny=qy+dy[i]
-            if graph[nx][ny]==0: #바다면
-                target[qx][qy]+=1 # 녹일 만큼 메모장에 기록
-            else: # 빙산이면
-                if 0 < nx <(N-1) and 0 < ny <(M-1) and not visit[nx][ny]:
-                    visit[nx][ny]=True
-                    q.append((nx,ny))
-
 # 빙산 분리됐는지 아닌지 확인하기
 def check_bfs(x,y):
     visit=[[False]*M for _ in range(N)]
@@ -54,15 +34,22 @@ for i in range(1, N-1):
             ice_cnt += 1
             
 while True:
-    # BFS
     melt=[[0]*M for _ in range(N)] #녹일 거 기록장
-    visited=[[False]*M for _ in range(N)]
-    # 녹일 거 기록
-    for i in range(1,N-1):
-        for j in range(1,M-1):
-            if iceberg[i][j] and not visited[i][j]:
-                visited[i][j]=True
-                bfs(iceberg,i,j,melt,visited)
+    # 1. 빙산 주변 0 개수 카운트
+    for i in range(1, N - 1):
+        for j in range(1, M - 1):
+            if iceberg[i][j] > 0: # 빙산인 경우에만 4방향 확인
+                zero_count = 0
+                for d in range(4):
+                    ni = i + dx[d]
+                    nj = j + dy[d]
+                    
+                    # 주변 4방향 중 바다(0)가 있다면 카운트 증가
+                    if iceberg[ni][nj] == 0:
+                        zero_count += 1
+                
+                # 빙산이 녹을 양을 기록장에 저장
+                melt[i][j] = zero_count
     # 기록된 메모장을 보고 빙산 녹이기
     for c in range(1,N-1):
         for r in range(1,M-1):
