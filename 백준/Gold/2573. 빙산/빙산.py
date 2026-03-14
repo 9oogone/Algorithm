@@ -1,82 +1,71 @@
 import sys
-input=sys.stdin.readline
+input = sys.stdin.readline
 from collections import deque
 
-N,M=map(int,input().split())# 총 N줄 한 줄에 M개 있음 
-iceberg=[list(map(int,input().split())) for _ in range(N)]
-year = 0
-# 델타
-dx=[0,1,0,-1]
-dy=[1,0,-1,0]
+N, M = map(int, input().split())
+iceberg = [list(map(int, input().split())) for _ in range(N)]
 
-# 빙산 분리됐는지 아닌지 확인하기
-def check_bfs(x,y):
-    visit=[[False]*M for _ in range(N)]
-    visit[x][y]=True
-    q=deque([(x,y)])
-    cnt=1
-    while q:
-        qx,qy=q.popleft()
-        for i in range(4):
-            nx=qx+dx[i]
-            ny=qy+dy[i]
-            if 0 < nx <(N-1) and 0 < ny <(M-1) and not visit[nx][ny] and iceberg[nx][ny]>0:
-                visit[nx][ny]=True
-                q.append((nx,ny))
-                cnt+=1
-    return cnt
-    
-# 시뮬레이션 전 초기 빙산 개수 파악
-ice_cnt = 0
+dx = [0, 1, 0, -1]
+dy = [1, 0, -1, 0]
+
+# 빙산 좌표만 따로 추출하여 집합(Set)으로 관리
+ice_coords = set()
 for i in range(1, N-1):
     for j in range(1, M-1):
         if iceberg[i][j] > 0:
-            ice_cnt += 1
+            ice_coords.add((i, j))
+
+def check_bfs(start_x, start_y, current_ice_set):
+    visit = set()
+    visit.add((start_x, start_y))
+    q = deque([(start_x, start_y)])
+    cnt = 1
+    while q:
+        x, y = q.popleft()
+        for i in range(4):
+            nx = x + dx[i]
+            ny = y + dy[i]
+            # 맵 범위를 확인할 필요 없음 (current_ice_set 안에 존재하는지만 확인하면 O(1)로 처리 가능)
+            if (nx, ny) in current_ice_set and (nx, ny) not in visit:
+                visit.add((nx, ny))
+                q.append((nx, ny))
+                cnt += 1
+    return cnt
+
+year = 0
+while ice_coords:
+    melt_info = [] # (x, y, 녹을 양) 기록
+    
+    # 1. 융해량 계산 (살아있는 빙산 좌표만 순회)
+    for x, y in ice_coords:
+        zero_count = 0
+        for i in range(4):
+            nx = x + dx[i]
+            ny = y + dy[i]
+            if iceberg[nx][ny] == 0:
+                zero_count += 1
+        if zero_count > 0:
+            melt_info.append((x, y, zero_count))
             
-while True:
-    melt=[[0]*M for _ in range(N)] #녹일 거 기록장
-    # 1. 빙산 주변 0 개수 카운트
-    for i in range(1, N - 1):
-        for j in range(1, M - 1):
-            if iceberg[i][j] > 0: # 빙산인 경우에만 4방향 확인
-                zero_count = 0
-                for d in range(4):
-                    ni = i + dx[d]
-                    nj = j + dy[d]
-                    
-                    # 주변 4방향 중 바다(0)가 있다면 카운트 증가
-                    if iceberg[ni][nj] == 0:
-                        zero_count += 1
-                
-                # 빙산이 녹을 양을 기록장에 저장
-                melt[i][j] = zero_count
-    # 기록된 메모장을 보고 빙산 녹이기
-    for c in range(1,N-1):
-        for r in range(1,M-1):
-            if iceberg[c][r] > 0: # 빙산인 경우에만
-                if iceberg[c][r] <= melt[c][r]:
-                    iceberg[c][r] = 0
-                    ice_cnt -= 1
-                else:
-                    iceberg[c][r] -= melt[c][r]
-    # 전부 녹았으면
-    if ice_cnt==0:
+    # 2. 융해 적용 및 죽은 빙산 좌표 제거
+    for x, y, melt_amt in melt_info:
+        iceberg[x][y] -= melt_amt
+        if iceberg[x][y] <= 0:
+            iceberg[x][y] = 0
+            ice_coords.remove((x, y)) # 빙산이 소멸하면 추적 집합에서 제거
+            
+    year += 1 
+
+    # 3. 종료 조건 검사
+    if not ice_coords: # 남은 빙산이 없으면
         print(0)
         break
-    year += 1 
-    # 빙산이 분리됐는지 확인하기
-    # 시작점 찾기
-    sx,sy=-1,-1
-    for z in range(1,N-1):
-        for x in range(1,M-1):
-            if iceberg[z][x]:
-                sx=z
-                sy=x
-                break
-        if sx != -1:
-            break
-    connect=check_bfs(sx,sy)
-    # 분리 여부 판별
-    if connect<ice_cnt:
+        
+    # 4. 분리 여부 판별
+    # 집합에 남아있는 아무 빙산이나 하나 골라서 탐색 시작 (순회 불필요)
+    sx, sy = next(iter(ice_coords)) 
+    connect = check_bfs(sx, sy, ice_coords)
+    
+    if connect < len(ice_coords):
         print(year)
         break
