@@ -1,32 +1,16 @@
 import sys
-input=sys.stdin.readline
-from collections import deque
+input = sys.stdin.readline
 
-N,K=map(int,input().split())
-table=input().strip()
+N, K = map(int, input().split())
+table = list(input().strip())
 
-ham=deque([])
-sa=deque([])
-
+cnt = 0
 for i in range(N):
-    if table[i] == 'H':
-        ham.append(i)
-    else:
-        sa.append(i)
- 
-def eat():
-    cnt = 0
-    while sa and ham:
-        x=ham[0]
-        y=sa[0]
-        if (y-K)<=x<=(y+K):
-            cnt += 1
-            x= ham.popleft()
-            y = sa.popleft()
-        elif x < y:
-            x=ham.popleft()
-        else:
-            y=sa.popleft()
-    return cnt
-
-print(eat())
+    if table[i] == 'P':
+        # i-K부터 i+K까지 범위 내에서 가장 먼저 발견되는 H를 찾음
+        for j in range(max(0, i - K), min(N, i + K + 1)):
+            if table[j] == 'H':
+                table[j] = 'E' 
+                cnt += 1
+                break
+print(cnt)
